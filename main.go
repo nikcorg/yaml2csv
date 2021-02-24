@@ -94,8 +94,10 @@ func slurpInput() ([]byte, error) {
 	return input, nil
 }
 
-var csvRe = regexp.MustCompile(`^[^,]+((,[^,]+)*)?$`)
-var yamlRe = regexp.MustCompile(`^(---|- \w+:)$`)
+var (
+	csvFirstLine  = regexp.MustCompile(`^[^,]+((,[^,]+)*)?$`)
+	yamlFirstLine = regexp.MustCompile(`^(---|- \w+:)$`)
+)
 
 func sniffIOMode(input []byte) (iomode, error) {
 	r := bufio.NewReader(bytes.NewReader(input))
@@ -106,8 +108,8 @@ func sniffIOMode(input []byte) (iomode, error) {
 	}
 
 	firstLine = strings.TrimSpace(firstLine)
-	matchesCSV := csvRe.MatchString(firstLine)
-	matchesYAML := yamlRe.MatchString(firstLine)
+	matchesCSV := csvFirstLine.MatchString(firstLine)
+	matchesYAML := yamlFirstLine.MatchString(firstLine)
 
 	if !matchesCSV && !matchesYAML {
 		return unknown, errUnsuccessfulSniff
