@@ -25,7 +25,6 @@ const (
 )
 
 var (
-	errNoInputRecords    = errors.New("no input records")
 	errUnknownMode       = errors.New("unknown mode")
 	errUnknownError      = errors.New("unknown error")
 	errUnsuccessfulSniff = errors.New("unrecognisable first line, set input format using -m (csv|yaml)")
@@ -138,7 +137,7 @@ func convertYAML2CSV(input []byte) error {
 	}
 
 	if len(yamlDoc) == 0 {
-		return errNoInputRecords
+		io.WriteString(os.Stderr, "warning: no input records\n")
 	}
 
 	// Check if the first record is a __meta__ record
@@ -182,7 +181,7 @@ func convertCSV2YAML(input []byte) error {
 	}
 
 	if len(csvData) < 2 {
-		return errNoInputRecords
+		io.WriteString(os.Stderr, "warning: no input records\n")
 	}
 
 	csvCols := csvData[0]
