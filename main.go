@@ -115,8 +115,6 @@ func sniffIOMode(input []byte) (iomode, error) {
 		return unknown, errUnsuccessfulSniff
 	}
 
-	fmt.Println(firstLine, matchesYAML, matchesCSV)
-
 	switch {
 	case matchesYAML:
 		return yaml2csv, nil
@@ -143,8 +141,15 @@ func convertYAML2CSV(input []byte) error {
 		return errNoInputRecords
 	}
 
-	for k := range yamlDoc[0] {
-		csvCols = append(csvCols, k)
+	// Check if the first record is a __meta__ record
+	if _, ok := yamlDoc[0]["__meta__"]; ok {
+		csvCols = strings.Split(yamlDoc[0]["column_order"], ",")
+		yamlDoc = yamlDoc[1:]
+	} else {
+		// Otherwise use the keys from the first record in whichever order they're iterated
+		for k := range yamlDoc[0] {
+			csvCols = append(csvCols, k)
+		}
 	}
 	csvData = append(csvData, csvCols)
 
@@ -181,6 +186,12 @@ func convertCSV2YAML(input []byte) error {
 	}
 
 	csvCols := csvData[0]
+
+	// create the __meta__ record
+	yamlData = append(yamlData, map[string]string{
+		"__meta__":     "",
+		"column_order": strings.Join(csvCols, ","),
+	})
 
 	for _, r := range csvData[1:] {
 		yamlRec := map[string]string{}
