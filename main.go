@@ -30,20 +30,16 @@ var (
 	errUnsuccessfulSniff = errors.New("unrecognisable first line, set input format using -m (csv|yaml)")
 )
 
-var inputFormat string
-
-func init() {
-	flag.StringVar(&inputFormat, "m", "", "csv or yaml")
-}
-
 func main() {
+	inputFormat := flag.String("m", "", "csv or yaml")
 	flag.Parse()
-	if err := mainWithErr(); err != nil {
+
+	if err := mainWithErr(*inputFormat); err != nil {
 		io.WriteString(os.Stderr, fmt.Sprintf("error: %s\n", err.Error()))
 	}
 }
 
-func mainWithErr() error {
+func mainWithErr(inputFormat string) error {
 	var (
 		err   error
 		input []byte
