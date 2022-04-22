@@ -25,9 +25,8 @@ const (
 )
 
 var (
-	errUnknownMode       = errors.New("unknown mode")
-	errUnknownError      = errors.New("unknown error")
-	errUnsuccessfulSniff = errors.New("unrecognisable first line, set input format using -m (csv|yaml)")
+	errUnknownMode  = errors.New("unknown mode")
+	errUnknownError = errors.New("unknown error")
 )
 
 func main() {
@@ -90,34 +89,24 @@ func slurpInput() ([]byte, error) {
 }
 
 var (
-	csvFirstLine  = regexp.MustCompile(`^[^,]+((,[^,]+)*)?$`)
-	yamlFirstLine = regexp.MustCompile(`^(---|- \w+:)$`)
+	looksLikeYAML = regexp.MustCompile(`^(---$|- [^:]*:)`)
 )
 
 func sniffIOMode(input []byte) (iomode, error) {
 	r := bufio.NewReader(bytes.NewReader(input))
 
 	firstLine, err := r.ReadString('\n')
-	if err != nil {
+	if err != nil || firstLine == "" {
 		return unknown, err
 	}
 
-	firstLine = strings.TrimSpace(firstLine)
-	matchesCSV := csvFirstLine.MatchString(firstLine)
-	matchesYAML := yamlFirstLine.MatchString(firstLine)
+	matchesYAML := looksLikeYAML.MatchString(strings.TrimSpace(firstLine))
 
-	if !matchesCSV && !matchesYAML {
-		return unknown, errUnsuccessfulSniff
-	}
-
-	switch {
-	case matchesYAML:
+	if matchesYAML {
 		return yaml2csv, nil
-	case matchesCSV:
-		return csv2yaml, nil
 	}
 
-	return unknown, errUnknownError
+	return csv2yaml, nil
 }
 
 func convertYAML2CSV(input []byte) error {
