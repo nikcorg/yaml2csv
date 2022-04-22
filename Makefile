@@ -15,5 +15,5 @@ $(PLATFORMS):
 	GOOS=$(os) GOARCH=amd64 go build -o bin/$(BINARY_NAME)-$(os)-amd64 *.go
 
 .PHONY: release
-release: windows linux darwin
+release: $(PLATFORMS)
 
